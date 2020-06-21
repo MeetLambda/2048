@@ -78,3 +78,16 @@ applyCommand Left  g = toA4 emptyRow (map (collapse L) (toList g))
 applyCommand Right g = toA4 emptyRow (map (collapse R) (toList g))
 applyCommand Up    g = transposeGrid (applyCommand Left (transposeGrid g))
 applyCommand Down  g = transposeGrid (applyCommand Right (transposeGrid g))
+
+A4Index = I1 | I2 | I3 | I4
+data Coordinate = Coordinate A4Index A4Index
+
+getIndex :: forall a. A4Index -> A4 a -> a
+getIndex I1 (A4 a1 a2 a3 a4) = a1
+getIndex I2 (A4 a1 a2 a3 a4) = a2
+getIndex I3 (A4 a1 a2 a3 a4) = a3
+getIndex I4 (A4 a1 a2 a3 a4) = a4
+
+
+insertTile :: Int -> Coordinate -> Grid -> Grid
+insertTile
