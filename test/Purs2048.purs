@@ -4,7 +4,6 @@ import Control.Bind (discard)
 import Control.Monad.Free (Free)
 import Data.List.Types (List(..), (:))
 import Data.Unit (Unit)
-import Data.Tuple (Tuple(..))
 
 import Test.Unit (suite, test, TestF)
 import Test.Unit.Assert as Assert

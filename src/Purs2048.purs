@@ -11,6 +11,8 @@ import Data.Semiring ((+))
 import Data.Show (class Show, show)
 import Data.Tuple (Tuple(..))
 
+-- ---------------------------------------------------------------
+
 data A4 a = A4 a a a a
 
 instance equalA4 :: (Eq a) => Eq (A4 a) where
@@ -29,54 +31,7 @@ toA4 u (Cons a1 (Cons a2 Nil)) = A4 a1 a2 u u
 toA4 u (Cons a1 (Cons a2 (Cons a3 Nil))) = A4 a1 a2 a3 u
 toA4 u (Cons a1 (Cons a2 (Cons a3 (Cons a4 _)))) = A4 a1 a2 a3 a4
 
-
-type RowCol = A4 Int
-type Grid = A4 RowCol
-
-data Command = Up | Down | Left | Right
-
-data Direction = L | R
-
-initGrid :: Grid
-initGrid = (A4 emptyRow emptyRow emptyRow emptyRow)
-
-fill :: Direction -> List Int -> RowCol
-fill d xs = case d of
-    L -> toA4 0 (xs <> (toList emptyRow))
-    R -> toA4 0 (reverse (take 4 (reverse xs <> (toList emptyRow))))
-
-shift :: Direction -> RowCol -> RowCol
-shift d a = fill d (filter (_ /= 0) (toList a))
-
-collapse :: Direction -> RowCol -> RowCol
-collapse d a = case d of
-    L -> case a' of
-        (A4 a1 a2 a3 a4) | (a1 == a2 && a3 == a4) -> (fill d ((a1 + a2) : (a3 + a4) : Nil ))
-        (A4 a1 a2 a3 a4) | (a1 == a2) -> (fill d ((a1 + a2) : a3 : a4 : Nil ))
-        (A4 a1 a2 a3 a4) | (a2 == a3) -> (fill d (a1 : (a2 + a3) : a4 : Nil ))
-        (A4 a1 a2 a3 a4) | (a3 == a4) -> (fill d (a1 : a2 : (a3 + a4) : Nil ))
-        _ -> a'
-    R -> case a' of
-        (A4 a1 a2 a3 a4) | (a1 == a2 && a3 == a4) -> (fill d ((a1 + a2) : (a3 + a4) : Nil ))
-        (A4 a1 a2 a3 a4) | (a3 == a4) -> (fill d (a1 : a2 : (a3 + a4) : Nil ))
-        (A4 a1 a2 a3 a4) | (a2 == a3) -> (fill d (a1 : (a2 + a3) : a4 : Nil ))
-        (A4 a1 a2 a3 a4) | (a1 == a2) -> (fill d ((a1 + a2) : a3 : a4 : Nil ))
-        _ -> a'
-    where
-        a' = shift d a
-    
-emptyRow = A4 0 0 0 0 :: A4 Int
-
-transposeGrid :: Grid -> Grid
-transposeGrid g = toA4 emptyRow (map (toA4 0) (transpose (map toList (toList g))))
-
-applyCommand :: Command -> Grid -> Grid
-applyCommand Left  g = toA4 emptyRow (map (collapse L) (toList g))
-applyCommand Right g = toA4 emptyRow (map (collapse R) (toList g))
-applyCommand Up    g = transposeGrid (applyCommand Left (transposeGrid g))
-applyCommand Down  g = transposeGrid (applyCommand Right (transposeGrid g))
-
--- ---------------------------------------------------------------
+-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 data A4Index = I1 | I2 | I3 | I4
 instance equalA4Index :: Eq A4Index where
@@ -95,6 +50,61 @@ index v = zip a4Index (toList v)
 
 -- ---------------------------------------------------------------
 
+type RowCol = A4 Int
+
+emptyRow = A4 0 0 0 0 :: A4 Int
+
+-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+type Grid = A4 RowCol
+
+initGrid :: Grid
+initGrid = (A4 emptyRow emptyRow emptyRow emptyRow)
+
+transposeGrid :: Grid -> Grid
+transposeGrid g = toA4 emptyRow (map (toA4 0) (transpose (map toList (toList g))))
+
+-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+data Direction = L | R
+
+shift :: Direction -> RowCol -> RowCol
+shift d a = fill d (filter (_ /= 0) (toList a))
+
+fill :: Direction -> List Int -> RowCol
+fill d xs = case d of
+    L -> toA4 0 (xs <> (toList emptyRow))
+    R -> toA4 0 (reverse (take 4 (reverse xs <> (toList emptyRow))))
+
+collapse :: Direction -> RowCol -> RowCol
+collapse d a = case d of
+    L -> case a' of
+        (A4 a1 a2 a3 a4) | (a1 == a2 && a3 == a4)   -> (fill d ((a1 + a2) : (a3 + a4) : Nil ))
+        (A4 a1 a2 a3 a4) | (a1 == a2)               -> (fill d ((a1 + a2) : a3 : a4 : Nil ))
+        (A4 a1 a2 a3 a4) | (a2 == a3)               -> (fill d (a1 : (a2 + a3) : a4 : Nil ))
+        (A4 a1 a2 a3 a4) | (a3 == a4)               -> (fill d (a1 : a2 : (a3 + a4) : Nil ))
+        _ -> a'
+    R -> case a' of
+        (A4 a1 a2 a3 a4) | (a1 == a2 && a3 == a4)   -> (fill d ((a1 + a2) : (a3 + a4) : Nil ))
+        (A4 a1 a2 a3 a4) | (a3 == a4)               -> (fill d (a1 : a2 : (a3 + a4) : Nil ))
+        (A4 a1 a2 a3 a4) | (a2 == a3)               -> (fill d (a1 : (a2 + a3) : a4 : Nil ))
+        (A4 a1 a2 a3 a4) | (a1 == a2)               -> (fill d ((a1 + a2) : a3 : a4 : Nil ))
+        _ -> a'
+    where
+        a' = shift d a
+
+-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+data Command = Up | Down | Left | Right
+
+applyCommand :: Command -> Grid -> Grid
+applyCommand Left  g = toA4 emptyRow (map (collapse L) (toList g))
+applyCommand Right g = toA4 emptyRow (map (collapse R) (toList g))
+applyCommand Up    g = transposeGrid (applyCommand Left (transposeGrid g))
+applyCommand Down  g = transposeGrid (applyCommand Right (transposeGrid g))
+
+-- ---------------------------------------------------------------
+
 data Tile = Tile A4Index A4Index Int
 
 instance equalTile :: Eq Tile where
@@ -102,15 +112,6 @@ instance equalTile :: Eq Tile where
 
 instance showTile :: Show Tile where
   show (Tile row col value) = "Tile[" <> show row <> ", " <> show col <> " => " <> show value <> "]"
-
--- ---------------------------------------------------------------
-
--- getIndex :: forall a. A4Index -> A4 a -> a
--- getIndex I1 (A4 a1 a2 a3 a4) = a1
--- getIndex I2 (A4 a1 a2 a3 a4) = a2
--- getIndex I3 (A4 a1 a2 a3 a4) = a3
--- getIndex I4 (A4 a1 a2 a3 a4) = a4
-
 
 tileValues :: Grid -> List Tile
 tileValues g = concatMap rowTiles indexedRows
@@ -120,9 +121,10 @@ tileValues g = concatMap rowTiles indexedRows
         indexedRows = zip a4Index rows  :: List (Tuple A4Index (List (Tuple A4Index Int)))
         rows = map index (toList g)
 
-
 emptyTiles :: Grid -> List Tile
 emptyTiles g = filter (\(Tile _ _ value) -> value == 0) (tileValues g)
 
--- insertTile :: Int -> Coordinate -> Grid -> Grid
+-- insertTile :: Tile -> Grid -> Grid
 -- insertTile
+
+-- ---------------------------------------------------------------
