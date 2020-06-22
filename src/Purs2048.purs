@@ -1,16 +1,15 @@
 module Purs2048 where
 
 import Data.Eq (class Eq, eq, (/=), (==))
-
-import Control.Bind (bind, discard)
+import Data.Foldable (foldl)
 import Data.Functor (map)
-import Data.List (filter, take, reverse, transpose)
 import Data.HeytingAlgebra ((&&))
+import Data.List (filter, take, reverse, transpose, zip, snoc, concatMap)
 import Data.List.Types (List(..), (:))
 import Data.Semigroup ((<>))
 import Data.Semiring ((+))
 import Data.Show (class Show, show)
-import Control.Semigroupoid ((>>>), (<<<))
+import Data.Tuple (Tuple(..))
 
 data A4 a = A4 a a a a
 
@@ -35,8 +34,6 @@ type RowCol = A4 Int
 type Grid = A4 RowCol
 
 data Command = Up | Down | Left | Right
-
-data Orientation = V | H
 
 data Direction = L | R
 
@@ -79,15 +76,53 @@ applyCommand Right g = toA4 emptyRow (map (collapse R) (toList g))
 applyCommand Up    g = transposeGrid (applyCommand Left (transposeGrid g))
 applyCommand Down  g = transposeGrid (applyCommand Right (transposeGrid g))
 
+-- ---------------------------------------------------------------
+
 data A4Index = I1 | I2 | I3 | I4
-data Coordinate = Coordinate A4Index A4Index
+instance equalA4Index :: Eq A4Index where
+  eq i1 i2 = eq (show i1) (show i2)
 
-getIndex :: forall a. A4Index -> A4 a -> a
-getIndex I1 (A4 a1 a2 a3 a4) = a1
-getIndex I2 (A4 a1 a2 a3 a4) = a2
-getIndex I3 (A4 a1 a2 a3 a4) = a3
-getIndex I4 (A4 a1 a2 a3 a4) = a4
+instance showA4Index :: Show A4Index where
+  show I1 = "1"
+  show I2 = "2"
+  show I3 = "3"
+  show I4 = "4"
 
+a4Index = I1 : I2 : I3 : I4 : Nil :: List A4Index
+
+index :: forall a. A4 a -> List (Tuple A4Index a)
+index v = zip a4Index (toList v)
+
+-- ---------------------------------------------------------------
+
+data Tile = Tile A4Index A4Index Int
+
+instance equalTile :: Eq Tile where
+  eq (Tile row1 col1 value1) (Tile row2 col2 value2) = (eq row1 row2) && (eq col1 col2) && (eq value1 value2)
+
+instance showTile :: Show Tile where
+  show (Tile row col value) = "Tile[" <> show row <> ", " <> show col <> " => " <> show value <> "]"
+
+-- ---------------------------------------------------------------
+
+-- getIndex :: forall a. A4Index -> A4 a -> a
+-- getIndex I1 (A4 a1 a2 a3 a4) = a1
+-- getIndex I2 (A4 a1 a2 a3 a4) = a2
+-- getIndex I3 (A4 a1 a2 a3 a4) = a3
+-- getIndex I4 (A4 a1 a2 a3 a4) = a4
+
+
+tileValues :: Grid -> List Tile
+tileValues g = concatMap rowTiles indexedRows
+    where
+        rowTiles :: Tuple A4Index (List (Tuple A4Index Int)) -> List Tile
+        rowTiles (Tuple row cols) = foldl snoc Nil (map (\(Tuple col value) -> Tile row col value) cols)
+        indexedRows = zip a4Index rows  :: List (Tuple A4Index (List (Tuple A4Index Int)))
+        rows = map index (toList g)
+
+
+emptyTiles :: Grid -> List Tile
+emptyTiles g = filter (\(Tile _ _ value) -> value == 0) (tileValues g)
 
 -- insertTile :: Int -> Coordinate -> Grid -> Grid
 -- insertTile
