@@ -7,7 +7,7 @@ import Data.Unit (Unit)
 
 import Test.Unit (suite, test, TestF)
 import Test.Unit.Assert as Assert
-import Purs2048 (A4(..), shift, Direction(..), toList, toA4, collapse, applyCommand, Command(..), Tile(..), A4Index(..), tileValues, emptyTiles)
+import Purs2048 (A4(..), shift, Direction(..), toList, toA4, collapse, applyCommand, Command(..), Tile(..), A4Index(..), tileValues, emptyTiles, insertTile)
 
 purs2048TestSuite :: Free TestF Unit
 purs2048TestSuite =
@@ -112,5 +112,18 @@ purs2048TestSuite =
                 (A4 2 0 2 0)
                 (A4 4 0 2 0)
                 (A4 4 4 2 0)
+                (A4 2 4 2 0)
+            ))
+
+        test "test insert tyle" do
+            Assert.equal (A4
+                (A4 4 0 0 0)
+                (A4 4 2 2 0)
+                (A4 8 2 0 0)
+                (A4 2 4 2 0)
+            ) (insertTile (Tile I2 I3 2) (A4
+                (A4 4 0 0 0)
+                (A4 4 2 0 0)
+                (A4 8 2 0 0)
                 (A4 2 4 2 0)
             ))

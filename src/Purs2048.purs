@@ -124,7 +124,21 @@ tileValues g = concatMap rowTiles indexedRows
 emptyTiles :: Grid -> List Tile
 emptyTiles g = filter (\(Tile _ _ value) -> value == 0) (tileValues g)
 
--- insertTile :: Tile -> Grid -> Grid
--- insertTile
+insertTile :: Tile -> Grid -> Grid
+insertTile (Tile row column value) grid = setValue row updatedRow grid
+    where
+        updatedRow = setValue column value (getValue row grid) :: A4 Int
+
+        getValue :: forall a. A4Index -> A4 a -> a
+        getValue I1 (A4 v1 v2 v3 v4) = v1
+        getValue I2 (A4 v1 v2 v3 v4) = v2
+        getValue I3 (A4 v1 v2 v3 v4) = v3
+        getValue I4 (A4 v1 v2 v3 v4) = v4
+
+        setValue :: forall a. A4Index -> a -> A4 a -> A4 a
+        setValue I1 v (A4 v1 v2 v3 v4) = A4 v  v2 v3 v4
+        setValue I2 v (A4 v1 v2 v3 v4) = A4 v1 v  v3 v4
+        setValue I3 v (A4 v1 v2 v3 v4) = A4 v1 v2 v  v4
+        setValue I4 v (A4 v1 v2 v3 v4) = A4 v1 v2 v3 v
 
 -- ---------------------------------------------------------------
