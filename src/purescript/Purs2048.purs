@@ -1,15 +1,21 @@
 module Purs2048 where
 
+import Control.Applicative (pure)
+import Control.Bind (bind)
 import Data.Eq (class Eq, eq, (/=), (==))
-import Data.Foldable (foldl)
+import Data.Foldable (foldl, length)
+import Data.Function (($))
 import Data.Functor (map)
 import Data.HeytingAlgebra ((&&))
-import Data.List (filter, take, reverse, transpose, zip, snoc, concatMap)
+import Data.List (filter, take, reverse, transpose, zip, snoc, concatMap, index)
 import Data.List.Types (List(..), (:))
+import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 import Data.Semiring ((+))
 import Data.Show (class Show, show)
 import Data.Tuple (Tuple(..))
+import Effect (Effect)
+import Effect.Random (randomInt)
 
 -- ---------------------------------------------------------------
 
@@ -45,8 +51,15 @@ instance showA4Index :: Show A4Index where
 
 a4Index = I1 : I2 : I3 : I4 : Nil :: List A4Index
 
-index :: forall a. A4 a -> List (Tuple A4Index a)
-index v = zip a4Index (toList v)
+indexA4 :: forall a. A4 a -> List (Tuple A4Index a)
+indexA4 v = zip a4Index (toList v)
+
+a4IndexFromInt :: Int -> A4Index
+a4IndexFromInt 1 = I1
+a4IndexFromInt 2 = I2
+a4IndexFromInt 3 = I3
+a4IndexFromInt 4 = I4
+a4IndexFromInt _ = I4
 
 -- ---------------------------------------------------------------
 
@@ -58,8 +71,8 @@ emptyRow = A4 0 0 0 0 :: A4 Int
 
 type Grid = A4 RowCol
 
-initGrid :: Grid
-initGrid = (A4 emptyRow emptyRow emptyRow emptyRow)
+emptyGrid :: Grid
+emptyGrid = (A4 emptyRow emptyRow emptyRow emptyRow)
 
 transposeGrid :: Grid -> Grid
 transposeGrid g = toA4 emptyRow (map (toA4 0) (transpose (map toList (toList g))))
@@ -119,7 +132,7 @@ tileValues g = concatMap rowTiles indexedRows
         rowTiles :: Tuple A4Index (List (Tuple A4Index Int)) -> List Tile
         rowTiles (Tuple row cols) = foldl snoc Nil (map (\(Tuple col value) -> Tile row col value) cols)
         indexedRows = zip a4Index rows  :: List (Tuple A4Index (List (Tuple A4Index Int)))
-        rows = map index (toList g)
+        rows = map indexA4 (toList g)
 
 emptyTiles :: Grid -> List Tile
 emptyTiles g = filter (\(Tile _ _ value) -> value == 0) (tileValues g)
@@ -140,5 +153,15 @@ insertTile (Tile row column value) grid = setValue row updatedRow grid
         setValue I2 v (A4 v1 v2 v3 v4) = A4 v1 v  v3 v4
         setValue I3 v (A4 v1 v2 v3 v4) = A4 v1 v2 v  v4
         setValue I4 v (A4 v1 v2 v3 v4) = A4 v1 v2 v3 v
+
+
+addTile :: Grid -> Effect Grid
+addTile g = do
+    let empties = emptyTiles g :: List Tile
+    tileIndex :: Int <- randomInt 1 (length empties)
+    let tile = index empties tileIndex :: Maybe Tile
+    pure $ case tile of
+        Just (Tile row column _) -> insertTile (Tile row column 2) g
+        Nothing                  -> g
 
 -- ---------------------------------------------------------------

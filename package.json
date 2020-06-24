@@ -1,0 +1,24 @@
+{
+    "license": "AGPL-3.0-or-later",
+    "scripts": {
+        "build": "spago --jobs 10 build --purs-args '--codegen js,sourcemaps --verbose-errors'",
+        "rebuild": "clear; yarn clean; yarn build",
+        "develop-purs": "spago --jobs 10 build --watch --clear-screen --purs-args '--codegen js,sourcemaps --verbose-errors'",
+        "develop-app": "parcel --host 0.0.0.0 --out-dir ./output ./src/html/index.html",
+        "docs": "spago docs --open",
+        "clean": "while read gitIgnorePattern; do rm -rf .${gitIgnorePattern}; done < .gitignore"
+    },
+    "engines": {
+        "yarn": "^1.17.3"
+    },
+    "devDependencies": {
+        "sass": "^1.26.9"
+    },
+    "dependencies": {
+        "purescript": "^0.13.8",
+        "purty": "^6.2.0",
+        "react": "^16.13.1",
+        "react-dom": "^16.13.1",
+        "spago": "^0.15.2"
+    }
+}
