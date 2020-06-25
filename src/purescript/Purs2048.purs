@@ -6,10 +6,11 @@ import Data.Eq (class Eq, eq, (/=), (==))
 import Data.Foldable (foldl, length)
 import Data.Function (($))
 import Data.Functor (map)
-import Data.HeytingAlgebra ((&&))
+import Data.HeytingAlgebra ((&&), (||))
 import Data.List (filter, take, reverse, transpose, zip, snoc, concatMap, index)
 import Data.List.Types (List(..), (:))
 import Data.Maybe (Maybe(..))
+import Data.Ring ((-))
 import Data.Semigroup ((<>))
 import Data.Semiring ((+))
 import Data.Show (class Show, show)
@@ -22,10 +23,10 @@ import Effect.Random (randomInt)
 data A4 a = A4 a a a a
 
 instance equalA4 :: (Eq a) => Eq (A4 a) where
-  eq (A4 a1 a2 a3 a4) (A4 a1' a2' a3' a4') = (eq a1 a1') && (eq a2 a2') && (eq a3 a3') && (eq a4 a4')
+    eq (A4 a1 a2 a3 a4) (A4 a1' a2' a3' a4') = (eq a1 a1') && (eq a2 a2') && (eq a3 a3') && (eq a4 a4')
 
 instance showA4 :: (Show a) => Show (A4 a) where
-  show (A4 a1 a2 a3 a4) = "A4[" <> show a1 <> ", " <> show a2 <> ", " <> show a3 <> ", " <> show a4 <> "]"
+    show (A4 a1 a2 a3 a4) = "A4[" <> show a1 <> ", " <> show a2 <> ", " <> show a3 <> ", " <> show a4 <> "]"
 
 toList :: forall a. A4 a -> List a
 toList (A4 a1 a2 a3 a4) = a1 : a2 : a3 : a4 : Nil
@@ -41,13 +42,13 @@ toA4 u (Cons a1 (Cons a2 (Cons a3 (Cons a4 _)))) = A4 a1 a2 a3 a4
 
 data A4Index = I1 | I2 | I3 | I4
 instance equalA4Index :: Eq A4Index where
-  eq i1 i2 = eq (show i1) (show i2)
+    eq i1 i2 = eq (show i1) (show i2)
 
 instance showA4Index :: Show A4Index where
-  show I1 = "1"
-  show I2 = "2"
-  show I3 = "3"
-  show I4 = "4"
+    show I1 = "1"
+    show I2 = "2"
+    show I3 = "3"
+    show I4 = "4"
 
 a4Index = I1 : I2 : I3 : I4 : Nil :: List A4Index
 
@@ -89,8 +90,8 @@ fill d xs = case d of
     L -> toA4 0 (xs <> (toList emptyRow))
     R -> toA4 0 (reverse (take 4 (reverse xs <> (toList emptyRow))))
 
-collapse :: Direction -> RowCol -> RowCol
-collapse d a = case d of
+compact :: Direction -> RowCol -> RowCol
+compact d a = case d of
     L -> case a' of
         (A4 a1 a2 a3 a4) | (a1 == a2 && a3 == a4)   -> (fill d ((a1 + a2) : (a3 + a4) : Nil ))
         (A4 a1 a2 a3 a4) | (a1 == a2)               -> (fill d ((a1 + a2) : a3 : a4 : Nil ))
@@ -111,10 +112,16 @@ collapse d a = case d of
 data Command = Up | Down | Left | Right
 
 applyCommand :: Command -> Grid -> Grid
-applyCommand Left  g = toA4 emptyRow (map (collapse L) (toList g))
-applyCommand Right g = toA4 emptyRow (map (collapse R) (toList g))
-applyCommand Up    g = transposeGrid (applyCommand Left (transposeGrid g))
+applyCommand Left  g = toA4 emptyRow (map (compact L) (toList g))
+applyCommand Right g = toA4 emptyRow (map (compact R) (toList g))
+applyCommand Up    g = transposeGrid (applyCommand Left  (transposeGrid g))
 applyCommand Down  g = transposeGrid (applyCommand Right (transposeGrid g))
+
+canCompact :: Grid -> Boolean
+canCompact grid =   (grid /= (applyCommand Left  grid))
+                ||  (grid /= (applyCommand Right grid))
+                ||  (grid /= (applyCommand Up    grid))
+                ||  (grid /= (applyCommand Down  grid))
 
 -- ---------------------------------------------------------------
 
@@ -158,7 +165,7 @@ insertTile (Tile row column value) grid = setValue row updatedRow grid
 addTile :: Grid -> Effect Grid
 addTile g = do
     let empties = emptyTiles g :: List Tile
-    tileIndex :: Int <- randomInt 1 (length empties)
+    tileIndex :: Int <- randomInt 0 ((length empties) - 1)
     let tile = index empties tileIndex :: Maybe Tile
     pure $ case tile of
         Just (Tile row column _) -> insertTile (Tile row column 2) g

@@ -1,6 +1,5 @@
 module Test.Main where
 
--- import Control.Bind (discard)
 import Data.Unit (Unit)
 import Effect (Effect)
 import Test.Unit.Main (runTest)
