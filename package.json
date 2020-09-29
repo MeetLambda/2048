@@ -12,7 +12,7 @@
         "yarn": "^1.17.3"
     },
     "devDependencies": {
-        "sass": "^1.26.9"
+        "sass": "^1.26.11"
     },
     "dependencies": {
         "purescript": "^0.13.8",
