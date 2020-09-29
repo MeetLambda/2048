@@ -1,4 +1,4 @@
-# Simple Calculator
+# 2048
 
 ## Initial setup and first build
 
