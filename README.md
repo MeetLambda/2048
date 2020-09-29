@@ -37,4 +37,5 @@ The first command will invoke `spago` to continuosly compile the PureScript file
     ✨  Built in 2.36s.
 
 This is what the game should look like:
+
 ![screenshot](./screenshot.png "Screenshot")
