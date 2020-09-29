@@ -36,5 +36,5 @@ The first command will invoke `spago` to continuosly compile the PureScript file
     Server running at http://localhost:1234 
     ✨  Built in 2.36s.
 
-This is what the calculator should look like:
+This is what the game should look like:
 ![screenshot](./screenshot.png "Screenshot")
