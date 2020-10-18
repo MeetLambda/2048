@@ -50,7 +50,8 @@ instance showA4Index :: Show A4Index where
     show I3 = "3"
     show I4 = "4"
 
-a4Index = I1 : I2 : I3 : I4 : Nil :: List A4Index
+a4Index :: List A4Index
+a4Index = I1 : I2 : I3 : I4 : Nil -- :: List A4Index
 
 indexA4 :: forall a. A4 a -> List (Tuple A4Index a)
 indexA4 v = zip a4Index (toList v)
@@ -63,9 +64,9 @@ a4IndexFromInt 4 = I4
 a4IndexFromInt _ = I4
 
 -- ---------------------------------------------------------------
-
 type RowCol = A4 Int
 
+-- emptyRow :: RowCol
 emptyRow = A4 0 0 0 0 :: A4 Int
 
 -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -74,6 +75,10 @@ type Grid = A4 RowCol
 
 emptyGrid :: Grid
 emptyGrid = (A4 emptyRow emptyRow emptyRow emptyRow)
+
+-- https://www.mathsisfun.com/definitions/transpose-matrix-.html
+
+-- g = A4 RowCol = A4 A4 Int -> toList -> List(A4 Int) -> map toList -> List(List(Int)) -> map toA4 0 -> List(A4 Int) -> map toA4 emptyRow -> A4 A4 Int
 
 transposeGrid :: Grid -> Grid
 transposeGrid g = toA4 emptyRow (map (toA4 0) (transpose (map toList (toList g))))
@@ -93,14 +98,15 @@ fill d xs = case d of
 compact :: Direction -> RowCol -> RowCol
 compact d a = case d of
     L -> case a' of
-        (A4 a1 a2 a3 a4) | (a1 == a2 && a3 == a4)   -> (fill d ((a1 + a2) : (a3 + a4) : Nil ))
-        (A4 a1 a2 a3 a4) | (a1 == a2)               -> (fill d ((a1 + a2) : a3 : a4 : Nil ))
-        (A4 a1 a2 a3 a4) | (a2 == a3)               -> (fill d (a1 : (a2 + a3) : a4 : Nil ))
-        (A4 a1 a2 a3 a4) | (a3 == a4)               -> (fill d (a1 : a2 : (a3 + a4) : Nil ))
+        (A4 a1 a2 a3 a4) | (a1 == a2 && a3 == a4)   -> (fill d ((a1 + a2) : (a3 + a4) : Nil )) -- 2 2 4 4 
+        (A4 a1 a2 a3 a4) | (a1 == a2)               -> (fill d ((a1 + a2) : a3 : a4 : Nil )) -- 2 2 4 8
+        (A4 a1 a2 a3 a4) | (a2 == a3)               -> (fill d (a1 : (a2 + a3) : a4 : Nil )) -- 2 4 4 8
+        (A4 a1 a2 a3 a4) | (a3 == a4)               -> (fill d (a1 : a2 : (a3 + a4) : Nil )) -- 2 4 8 8
         _ -> a'
+-- https://pursuit.purescript.org/packages/purescript-lists/5.4.1/docs/Data.List#v:reverse
     R -> case a' of
-        (A4 a1 a2 a3 a4) | (a1 == a2 && a3 == a4)   -> (fill d ((a1 + a2) : (a3 + a4) : Nil ))
-        (A4 a1 a2 a3 a4) | (a3 == a4)               -> (fill d (a1 : a2 : (a3 + a4) : Nil ))
+        (A4 a1 a2 a3 a4) | (a1 == a2 && a3 == a4)   -> (fill d ((a1 + a2) : (a3 + a4) : Nil )) -- 0 2 2 2 => L -> 0 4 2 0
+        (A4 a1 a2 a3 a4) | (a3 == a4)               -> (fill d (a1 : a2 : (a3 + a4) : Nil ))           -- => R -> 0 0 2 4
         (A4 a1 a2 a3 a4) | (a2 == a3)               -> (fill d (a1 : (a2 + a3) : a4 : Nil ))
         (A4 a1 a2 a3 a4) | (a1 == a2)               -> (fill d ((a1 + a2) : a3 : a4 : Nil ))
         _ -> a'
@@ -136,10 +142,22 @@ instance showTile :: Show Tile where
 tileValues :: Grid -> List Tile
 tileValues g = concatMap rowTiles indexedRows
     where
+        -- Tuple I1 [Tuple (I1 1), Tuple(I2, 2), Tuple(I3, 3), Tuple(I4, 4)] -> List (Tile(I1, I1, 1), Tile...) 
         rowTiles :: Tuple A4Index (List (Tuple A4Index Int)) -> List Tile
-        rowTiles (Tuple row cols) = foldl snoc Nil (map (\(Tuple col value) -> Tile row col value) cols)
+        -- rowTiles (Tuple row cols) = foldl snoc Nil (map (\(Tuple col value) -> Tile row col value) cols)
+        rowTiles (Tuple row cols) = (map (\(Tuple col value) -> Tile row col value) cols)
         indexedRows = zip a4Index rows  :: List (Tuple A4Index (List (Tuple A4Index Int)))
         rows = map indexA4 (toList g)
+
+-- foldl :: forall a b f. Foldable f => (b -> a -> b) -> b -> f a -> b
+-- 1 2 3 4 5
+-- f (f (f Nil 1) 2) 3 -> 1:2:3:4:5:Nil
+
+-- snoc :: forall a. List a -> a -> List a
+
+-- foldl snoc Nil something
+
+-- something = 
 
 emptyTiles :: Grid -> List Tile
 emptyTiles g = filter (\(Tile _ _ value) -> value == 0) (tileValues g)
@@ -163,12 +181,14 @@ insertTile (Tile row column value) grid = setValue row updatedRow grid
 
 
 addTile :: Grid -> Effect Grid
-addTile g = do
+addTile g = do -- >>=
     let empties = emptyTiles g :: List Tile
     tileIndex :: Int <- randomInt 0 ((length empties) - 1)
     let tile = index empties tileIndex :: Maybe Tile
     pure $ case tile of
         Just (Tile row column _) -> insertTile (Tile row column 2) g
         Nothing                  -> g
+
+-- pure :: forall a f. Applicative f => a -> f a
 
 -- ---------------------------------------------------------------
