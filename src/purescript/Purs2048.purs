@@ -83,43 +83,37 @@ emptyGrid = (A4 emptyRow emptyRow emptyRow emptyRow)
 transposeGrid :: Grid -> Grid
 transposeGrid g = toA4 emptyRow (map (toA4 0) (transpose (map toList (toList g))))
 
+reverseRowCol :: RowCol -> RowCol
+reverseRowCol (A4 a1 a2 a3 a4) = (A4 a4 a3 a2 a1)
+
+reverseGrid :: Grid -> Grid
+reverseGrid g = toA4 emptyRow (map reverseRowCol (toList g))
+
 -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-data Direction = L | R
+shift :: RowCol -> RowCol
+shift a = fill (filter (_ /= 0) (toList a))
 
-shift :: Direction -> RowCol -> RowCol
-shift d a = fill d (filter (_ /= 0) (toList a))
+fill :: List Int -> RowCol
+fill xs = toA4 0 (xs <> (toList emptyRow))
 
-fill :: Direction -> List Int -> RowCol
-fill d xs = case d of
-    L -> toA4 0 (xs <> (toList emptyRow))
-    R -> toA4 0 (reverse (take 4 (reverse xs <> (toList emptyRow))))
-
-compact :: Direction -> RowCol -> RowCol
-compact d a = case d of
-    L -> case a' of
-        (A4 a1 a2 a3 a4) | (a1 == a2 && a3 == a4)   -> (fill d ((a1 + a2) : (a3 + a4) : Nil )) -- 2 2 4 4 
-        (A4 a1 a2 a3 a4) | (a1 == a2)               -> (fill d ((a1 + a2) : a3 : a4 : Nil )) -- 2 2 4 8
-        (A4 a1 a2 a3 a4) | (a2 == a3)               -> (fill d (a1 : (a2 + a3) : a4 : Nil )) -- 2 4 4 8
-        (A4 a1 a2 a3 a4) | (a3 == a4)               -> (fill d (a1 : a2 : (a3 + a4) : Nil )) -- 2 4 8 8
-        _ -> a'
--- https://pursuit.purescript.org/packages/purescript-lists/5.4.1/docs/Data.List#v:reverse
-    R -> case a' of
-        (A4 a1 a2 a3 a4) | (a1 == a2 && a3 == a4)   -> (fill d ((a1 + a2) : (a3 + a4) : Nil )) -- 0 2 2 2 => L -> 0 4 2 0
-        (A4 a1 a2 a3 a4) | (a3 == a4)               -> (fill d (a1 : a2 : (a3 + a4) : Nil ))           -- => R -> 0 0 2 4
-        (A4 a1 a2 a3 a4) | (a2 == a3)               -> (fill d (a1 : (a2 + a3) : a4 : Nil ))
-        (A4 a1 a2 a3 a4) | (a1 == a2)               -> (fill d ((a1 + a2) : a3 : a4 : Nil ))
+compact :: RowCol -> RowCol
+compact a = case a' of
+        (A4 a1 a2 a3 a4) | (a1 == a2 && a3 == a4)   -> (fill ((a1 + a2) : (a3 + a4) : Nil )) -- 2 2 4 4 
+        (A4 a1 a2 a3 a4) | (a1 == a2)               -> (fill ((a1 + a2) : a3 : a4 : Nil )) -- 2 2 4 8
+        (A4 a1 a2 a3 a4) | (a2 == a3)               -> (fill (a1 : (a2 + a3) : a4 : Nil )) -- 2 4 4 8
+        (A4 a1 a2 a3 a4) | (a3 == a4)               -> (fill (a1 : a2 : (a3 + a4) : Nil )) -- 2 4 8 8
         _ -> a'
     where
-        a' = shift d a
+        a' = shift a
 
 -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 data Command = Up | Down | Left | Right
 
 applyCommand :: Command -> Grid -> Grid
-applyCommand Left  g = toA4 emptyRow (map (compact L) (toList g))
-applyCommand Right g = toA4 emptyRow (map (compact R) (toList g))
+applyCommand Left  g = toA4 emptyRow (map compact (toList g))
+applyCommand Right g = reverseGrid (applyCommand Left (reverseGrid g))
 applyCommand Up    g = transposeGrid (applyCommand Left  (transposeGrid g))
 applyCommand Down  g = transposeGrid (applyCommand Right (transposeGrid g))
 
@@ -145,19 +139,9 @@ tileValues g = concatMap rowTiles indexedRows
         -- Tuple I1 [Tuple (I1 1), Tuple(I2, 2), Tuple(I3, 3), Tuple(I4, 4)] -> List (Tile(I1, I1, 1), Tile...) 
         rowTiles :: Tuple A4Index (List (Tuple A4Index Int)) -> List Tile
         -- rowTiles (Tuple row cols) = foldl snoc Nil (map (\(Tuple col value) -> Tile row col value) cols)
-        rowTiles (Tuple row cols) = (map (\(Tuple col value) -> Tile row col value) cols)
+        rowTiles (Tuple row cols) = map (\(Tuple col value) -> Tile row col value) cols
         indexedRows = zip a4Index rows  :: List (Tuple A4Index (List (Tuple A4Index Int)))
         rows = map indexA4 (toList g)
-
--- foldl :: forall a b f. Foldable f => (b -> a -> b) -> b -> f a -> b
--- 1 2 3 4 5
--- f (f (f Nil 1) 2) 3 -> 1:2:3:4:5:Nil
-
--- snoc :: forall a. List a -> a -> List a
-
--- foldl snoc Nil something
-
--- something = 
 
 emptyTiles :: Grid -> List Tile
 emptyTiles g = filter (\(Tile _ _ value) -> value == 0) (tileValues g)
