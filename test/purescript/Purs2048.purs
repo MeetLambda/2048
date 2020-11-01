@@ -2,11 +2,25 @@ module Test.Purs2048 where
 
 import Control.Bind (discard)
 import Control.Monad.Free (Free)
+import Data.Int (fromNumber)
 import Data.List.Types (List(..), (:))
 import Data.Unit (Unit)
-import Purs2048 (A4(..), A4Index(..), Command(..), Tile(..), applyCommand, canCompact, compact, emptyTiles, insertTile, shift, tileValues, toA4, toList)
+import Purs2048 (A4(..), A4Index(..), Command(..), Tile(..), TileValue(..), Pow2, applyCommand, canCompact, compact, emptyTiles, insertTile, shift, tileValues, toA4, toList)
 import Test.Unit (suite, test, TestF)
 import Test.Unit.Assert as Assert
+
+-- toPow2 :: Int -> Pow2
+-- toPow2 x = 
+
+toTileValue :: Int -> TileValue
+toTileValue 0 = EmptyTile
+toTileValue x = case fromNumber (log (toNumber x)) of -- TODO: it's the wrong log base
+    Just 0  -> EmptyTile
+    Just p  -> TileValue (toPow2 p)
+    Nothing -> EmptyTile
+
+tiles :: A4 Int -> A4 TileValue
+tiles a = map toTileValue a
 
 purs2048TestSuite :: Free TestF Unit
 purs2048TestSuite =
