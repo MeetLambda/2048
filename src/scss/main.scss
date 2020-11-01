@@ -4,6 +4,7 @@ $tilePadding: 2px;
 html {
     font-family: sans-serif;
 }
+
 .frame {
     width: $tileSize * 4 + $tilePadding * 8;
     padding: $tilePadding;

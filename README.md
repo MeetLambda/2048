@@ -39,3 +39,6 @@ The first command will invoke `spago` to continuosly compile the PureScript file
 This is what the game should look like:
 
 ![screenshot](./screenshot.png "Screenshot")
+
+You can play the game [here](https://meetlambda.netlify.com)
+[Note: it does require a keyboard to play at the moment]
