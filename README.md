@@ -4,11 +4,11 @@
 
 Compiling the [`purescript`](http://www.purescript.org) code, supposing [`nvm`](http://nvm.sh) is already installed, is as simple as typing:
 
-    > nvm install --lts (12.16.1)
+    > nvm install --lts (14.15.0)
     > npm install -g purescript@0.13.8
-    > npm install -g spago@0.16.0
+    > npm install -g spago@0.17.0
     > npm install -g parcel-bundler@1.12.4
-    > npm install -g sass@1.26.11
+    > npm install -g sass@1.28.0
     > npm install -g yarn@1.22.10
     > yarn clean; yarn build
     > yarn docs
