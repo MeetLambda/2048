@@ -8,6 +8,10 @@ html {
     width: $tileSize * 4 + $tilePadding * 8;
     padding: $tilePadding;
 
+    h2 {
+        text-align: center;
+    }
+
     h4 {
         font-family: sans-serif;
         text-align: center;
