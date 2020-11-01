@@ -7,21 +7,21 @@
         "develop-app": "parcel --host 0.0.0.0 --out-dir ./output ./src/html/index.html",
         "docs": "spago docs --open",
         "clean": "while read gitIgnorePattern; do rm -rf .${gitIgnorePattern}; done < .gitignore",
-        "install": "yarn build; parcel build --out-dir ./build ./src/html/index.html"
+        "publish": "yarn build; parcel build --out-dir ./build ./src/html/index.html"
     },
     "engines": {
         "yarn": "^1.17.3"
     },
     "devDependencies": {
         "cssnano": "^4.1.10",
-        "sass": "^1.28.0",
-        "parcel-bundler": "^1.12.4"
+        "parcel-bundler": "^1.12.4",
+        "sass": "^1.28.0"
     },
     "dependencies": {
         "purescript": "^0.13.8",
         "purty": "^6.2.0",
-        "react": "^16.13.1",
-        "react-dom": "^16.13.1",
+        "react": "^17.0.1",
+        "react-dom": "^17.0.1",
         "spago": "^0.15.2"
     }
 }

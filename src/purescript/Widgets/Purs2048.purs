@@ -2,7 +2,7 @@ module Widgets.Purs2048 where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div, text, h2, h4, span)
+import Concur.React.DOM (div, text, h2, h4, a, p, span)
 import Concur.React.Props as Props
 import React.SyntheticEvent (SyntheticKeyboardEvent, key)
 
@@ -33,7 +33,7 @@ cssValue (TileValue p)  = "value_" <> show p
 
 gridWidget :: forall a. Grid -> GameStatus -> Widget HTML a
 gridWidget grid status = div [Props.className "frame"] [
-    h4 [] [text "2048"],
+    h4 [] [text "Meetlambda 2048"],
     div [Props.className "grid"] (map (
         \(Tile row col value) ->
             -- div [Props.className ("tile value_" <> (show value))] [
@@ -45,7 +45,14 @@ gridWidget grid status = div [Props.className "frame"] [
         case status of
             KEEP_PLAYING -> h2 [] [text ""]
             GAME_OVER    -> h2 [] [text "Game Over"]
-    )
+    ),
+    div [Props.className "info"] [
+        p [Props.className "instructions"] [text "[use arrow keys to play]"],
+        p [Props.className "repository"] [
+            text "GitHub ",
+            a [Props.href "https://github.com/MeetLambda/2048"] [text "repository"]
+        ]
+    ]
 ]
 
 widget :: forall a. Grid -> Widget HTML a

@@ -1,6 +1,9 @@
 $tileSize: 50px;
 $tilePadding: 2px;
 
+html {
+    font-family: sans-serif;
+}
 .frame {
     width: $tileSize * 4 + $tilePadding * 8;
     padding: $tilePadding;
@@ -8,10 +11,20 @@ $tilePadding: 2px;
     h4 {
         font-family: sans-serif;
         text-align: center;
-        font-size: 18pt;
+        font-size: 16pt;
         margin: 10px;
     }
     
+    div.info {
+        text-align: center;
+        font-size: 10pt;
+        color: gray;
+
+        p {
+            margin: 0px;
+        }
+    }
+
     .grid {
         border: 3px solid #E45710;
         border-radius: 10px;
