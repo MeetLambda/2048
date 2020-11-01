@@ -6,12 +6,14 @@
         "develop-purs": "spago --jobs 10 build --watch --clear-screen --purs-args '--codegen js,sourcemaps --verbose-errors'",
         "develop-app": "parcel --host 0.0.0.0 --out-dir ./output ./src/html/index.html",
         "docs": "spago docs --open",
-        "clean": "while read gitIgnorePattern; do rm -rf .${gitIgnorePattern}; done < .gitignore"
+        "clean": "while read gitIgnorePattern; do rm -rf .${gitIgnorePattern}; done < .gitignore",
+        "install": "yarn build; parcel build --out-dir ./build ./src/html/index.html"
     },
     "engines": {
         "yarn": "^1.17.3"
     },
     "devDependencies": {
+        "cssnano": "^4.1.10",
         "sass": "^1.28.0"
     },
     "dependencies": {
