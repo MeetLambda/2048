@@ -23,16 +23,21 @@ import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
 import Effect.Class (liftEffect)
-import Purs2048 (Grid, Tile(..), Command(..), tileValues, applyCommand, addTile, canCompact)
+import Purs2048 (Grid, TileValue(..), Tile(..), Command(..), tileValues, applyCommand, addTile, canCompact)
 
 data GameStatus = KEEP_PLAYING | GAME_OVER
+
+cssValue :: TileValue -> String
+cssValue EmptyTile = "value_0"
+cssValue (TileValue p)  = "value_" <> show p
 
 gridWidget :: forall a. Grid -> GameStatus -> Widget HTML a
 gridWidget grid status = div [Props.className "frame"] [
     h4 [] [text "2048"],
     div [Props.className "grid"] (map (
         \(Tile row col value) ->
-            div [Props.className ("tile value_" <> (show value))] [
+            -- div [Props.className ("tile value_" <> (show value))] [
+            div [Props.className ("tile " <> (cssValue value))] [
                 span [] [text (show value)]
             ]
     ) (toArray  $ tileValues grid)),
