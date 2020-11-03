@@ -2,5 +2,5 @@
   YARN_VERSION = "1.22.10"
 
 [build]
-  command = "yarn"
-  publish = "publish"
+  command = "yarn publish"
+  publish = "build"
