@@ -10,7 +10,7 @@
         "publish": "yarn build; parcel build --out-dir ./build ./src/html/index.html"
     },
     "engines": {
-        "yarn": "^1.17.3"
+        "yarn": "^1.22.10"
     },
     "devDependencies": {
         "cssnano": "^4.1.10",
@@ -22,6 +22,6 @@
         "purty": "^6.2.0",
         "react": "^17.0.1",
         "react-dom": "^17.0.1",
-        "spago": "^0.15.2"
+        "spago": "^0.17.0"
     }
 }
