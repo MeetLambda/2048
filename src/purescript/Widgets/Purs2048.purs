@@ -2,17 +2,15 @@ module Widgets.Purs2048 where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div, text, h2, h4, a, p, span)
+import Concur.React.DOM (div, text, h2, h4, a, p, span, button)
 import Concur.React.Props as Props
-import React.SyntheticEvent (SyntheticKeyboardEvent, key)
-
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard)
+import Control.Bind (bind, discard, (>>=))
 import Data.Array (cons)
 import Data.Eq (eq)
 import Data.Function (($))
-import Data.Functor (map)
+import Data.Functor (map, ($>))
 import Data.List.Types (List(..))
 import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
@@ -24,6 +22,7 @@ import Effect.Aff.Class (liftAff)
 import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
 import Effect.Class (liftEffect)
 import Purs2048 (Grid, TileValue(..), Tile(..), Command(..), tileValues, applyCommand, addTile, canCompact)
+import React.SyntheticEvent (SyntheticKeyboardEvent, key)
 
 data GameStatus = KEEP_PLAYING | GAME_OVER
 
@@ -31,7 +30,7 @@ cssValue :: TileValue -> String
 cssValue EmptyTile = "value_0"
 cssValue (TileValue p)  = "value_" <> show p
 
-gridWidget :: forall a. Grid -> GameStatus -> Widget HTML a
+gridWidget :: Grid -> GameStatus -> Widget HTML (Maybe Command)
 gridWidget grid status = div [Props.className "frame"] [
     h4 [] [text "Meetlambda 2048"],
     div [Props.className "grid"] (map (
@@ -41,13 +40,19 @@ gridWidget grid status = div [Props.className "frame"] [
                 span [] [text (show value)]
             ]
     ) (toArray  $ tileValues grid)),
+    div [Props.className "buttons"] [
+        button [Props.onClick, Props.className "button up"] [text "UP"] $> (Just Up),
+        button [Props.onClick, Props.className "button down"] [text "DOWN"] $> (Just Down),
+        button [Props.onClick, Props.className "button right"] [text "RIGHT"] $> (Just Right),
+        button [Props.onClick, Props.className "button left"] [text "LEFT"] $> (Just Left)
+    ],
     (
         case status of
             KEEP_PLAYING -> h2 [] [text ""]
             GAME_OVER    -> h2 [] [text "Game Over"]
     ),
     div [Props.className "info"] [
-        p [Props.className "instructions"] [text "[use arrow keys to play]"],
+        p [Props.className "instructions"] [text "[you can also use arrow keys to play]"],
         p [Props.className "repository"] [
             text "GitHub ",
             a [Props.href "https://github.com/MeetLambda/2048"] [text "repository"]
@@ -62,8 +67,9 @@ widget initialGrid = do
     where
         go :: Grid -> GameStatus -> Widget HTML a
         go grid status = do
-            event   :: SyntheticKeyboardEvent   <- liftAff awaitKey <|> gridWidget grid status
-            command :: Maybe Command            <- liftEffect $ toCommand event
+            -- event   :: SyntheticKeyboardEvent   <- liftAff awaitKey <|> gridWidget grid status
+            -- command :: Maybe Command            <- liftEffect $ toCommand event
+            command :: Maybe Command               <- (liftAff awaitKey >>= (\event -> liftEffect $ toCommand event)) <|> gridWidget grid status
             case command of
                 Nothing             -> go grid status
                 Just actualCommand  -> do

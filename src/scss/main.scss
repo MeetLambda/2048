@@ -75,4 +75,36 @@ html {
             }
         }    
     }
+
+    .buttons {
+        display: grid;
+        grid-template-rows: 33% 33% 33%;
+        grid-template-columns: 33% 33% 33%;
+        width: $tileSize * 4 + $tilePadding * 8;
+
+        .button {
+            width: 50px;
+            height: 50px;
+            margin: auto;
+
+            &.up {
+                grid-column-start: 2;
+                grid-row-start: 1;
+            }
+            &.down {
+                grid-column-start: 2;
+                grid-row-start: 3;
+            }
+            &.left {
+                grid-column-start: 1;
+                grid-row-start: 2;
+            }
+            &.right {
+                grid-column-start: 3;
+                grid-row-start: 2;
+            }
+
+
+        }
+    }
 }
